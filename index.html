@@ -443,16 +443,14 @@ const ICON_NAMES={bulb:'Ampoule',nib:'Plume',palette:'Palette',text:'Typo',shape
 const PICKABLE=Object.keys(ICON_NAMES);
 const svgWrap=i=>'<svg viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+i+'</svg>';
 
-const COLORS={inspi:'#4338ca',logo:'#0e7490',couleur:'#db2777',typo:'#475569',icones:'#7c3aed',"3d":'#2563eb',mockups:'#0d9488',anim:'#ca8a04',skills:'#16a34a'};
-const DEFAULT={v:2,
+const COLORS={inspi:'#4338ca',couleur:'#db2777',typo:'#475569',icones:'#7c3aed',"3d":'#2563eb',anim:'#ca8a04',skills:'#16a34a'};
+const DEFAULT={v:3,
   categories:[
-    {id:'inspi',name:'Inspiration',icon:'bulb',color:COLORS.inspi},
-    {id:'logo',name:'Logo & identité',icon:'nib',color:COLORS.logo},
+    {id:'inspi',name:'Inspiration, logos & mockups',icon:'bulb',color:COLORS.inspi},
     {id:'couleur',name:'Couleurs',icon:'palette',color:COLORS.couleur},
     {id:'typo',name:'Typographie',icon:'text',color:COLORS.typo},
     {id:'icones',name:'Icônes',icon:'shapes',color:COLORS.icones},
     {id:'3d',name:'3D',icon:'cube',color:COLORS['3d']},
-    {id:'mockups',name:'Mockups',icon:'frame',color:COLORS.mockups},
     {id:'anim',name:'Animation & scripts',icon:'bolt',color:COLORS.anim},
     {id:'skills',name:'Skills IA',icon:'cap',color:COLORS.skills}
   ],
@@ -460,14 +458,14 @@ const DEFAULT={v:2,
     {id:'phosphor',name:'Phosphor Icons',url:'https://phosphoricons.com',desc:"Famille d'icônes open source cohérente, déclinée en six graisses, pour interfaces et sites.",cats:['icones'],tags:['svg','open source','ui']},
     {id:'anime',name:'Anime.js',url:'https://animejs.com/',desc:"Librairie JavaScript légère pour animer CSS, SVG et DOM avec des timelines précises.",cats:['anim'],tags:['javascript','svg','timeline']},
     {id:'coolors',name:'Coolors',url:'https://coolors.co/',desc:"Générateur de palettes : génère, verrouille les teintes à garder, exporte.",cats:['couleur'],tags:['palette','générateur']},
-    {id:'mockups',name:'Mockups Design',url:'https://mockups-design.com/',desc:"Mockups gratuits (print, packaging, écrans) pour présenter une identité ou un site en situation.",cats:['mockups'],tags:['psd','présentation','gratuit']},
-    {id:'identity',name:'Identity Designed',url:'https://identitydesigned.com/',desc:"Projets d'identité visuelle complets, présentés studio par studio avec leur démarche.",cats:['inspi','logo'],tags:['branding','études de cas']},
+    {id:'mockups',name:'Mockups Design',url:'https://mockups-design.com/',desc:"Mockups gratuits (print, packaging, écrans) pour présenter une identité ou un site en situation.",cats:['inspi'],tags:['psd','présentation','gratuit']},
+    {id:'identity',name:'Identity Designed',url:'https://identitydesigned.com/',desc:"Projets d'identité visuelle complets, présentés studio par studio avec leur démarche.",cats:['inspi'],tags:['branding','études de cas']},
     {id:'realtime',name:'Realtime Colors',url:'https://www.realtimecolors.com/?colors=050315-fbfbfe-2f27ce-dedcff-433bff&fonts=Inter-Inter',desc:"Teste une palette et un couple de polices sur une vraie maquette de site, puis exporte les variables CSS. Ty-ler reprend cette palette et la police Inter.",cats:['couleur','typo'],tags:['palette','polices','css']},
-    {id:'logobook',name:'Logobook',url:'https://logobook.com/',desc:"Index de logos classés par forme, symbole et designer, pour chercher une piste graphique.",cats:['logo','inspi'],tags:['symboles','archive']},
+    {id:'logobook',name:'Logobook',url:'https://logobook.com/',desc:"Index de logos classés par forme, symbole et designer, pour chercher une piste graphique.",cats:['inspi'],tags:['symboles','archive']},
     {id:'3dsvg',name:'3D SVG',url:'https://3dsvg.design/',desc:"Transforme un tracé SVG en objet 3D pour tes visuels.",cats:['3d','icones'],tags:['svg','3d']},
     {id:'posts',name:'Posts Design',url:'https://posts.design/',desc:"Collection de visuels et publications de designers à parcourir pour des idées de mise en page.",cats:['inspi'],tags:['réseaux sociaux','layout']},
     {id:'deck',name:'Deck Gallery',url:'https://www.deck.gallery/',desc:"Galerie de présentations et pitch decks soignés, utile pour construire une narration de page.",cats:['inspi'],tags:['présentation','storytelling']},
-    {id:'logosystem',name:'Logo System',url:'https://logosystem.co/',desc:"Bibliothèque de marques et symboles classés par familles de formes.",cats:['logo','inspi'],tags:['symboles','systèmes']},
+    {id:'logosystem',name:'Logo System',url:'https://logosystem.co/',desc:"Bibliothèque de marques et symboles classés par familles de formes.",cats:['inspi'],tags:['symboles','systèmes']},
     {id:'recent',name:'Recent Design',url:'https://recent.design/?category=3d',desc:"Sélection de ressources design récentes, ouverte ici sur la catégorie 3D.",cats:['3d','inspi'],tags:['veille','ressources']},
     {id:'tasteskill',name:'Taste Skill',url:'https://www.tasteskill.dev/',desc:"Skills à charger dans un agent IA pour améliorer ses choix de design front-end.",cats:['skills'],tags:['ia','agent','design']},
     {id:'uupm',name:'UI UX Pro Max',url:'https://uupm.cc/',desc:"Skill de design pour agents IA : styles, palettes, typos et règles UX à appliquer pendant le développement.",cats:['skills'],tags:['ia','ux','agent']}
@@ -480,10 +478,19 @@ const clone=o=>JSON.parse(JSON.stringify(o));
 function normalize(d){
   const b=clone(DEFAULT);
   if(!d||typeof d!=='object')return b;
-  const o={v:2,categories:Array.isArray(d.categories)?d.categories:b.categories,sites:Array.isArray(d.sites)?d.sites:b.sites,
+  const o={v:3,categories:Array.isArray(d.categories)?d.categories:b.categories,sites:Array.isArray(d.sites)?d.sites:b.sites,
     favs:Array.isArray(d.favs)?d.favs:[],notes:(d.notes&&typeof d.notes==='object')?d.notes:{},customIcons:Array.isArray(d.customIcons)?d.customIcons:[],
     settings:Object.assign({favicons:true},(d.settings&&typeof d.settings==='object')?d.settings:{})};
-  if(d.v!==2) o.categories.forEach(c=>{if(COLORS[c.id]&&OLD.includes((c.color||'').toLowerCase()))c.color=COLORS[c.id]});
+  if((d.v||0)<2) o.categories.forEach(c=>{if(COLORS[c.id]&&OLD.includes((c.color||'').toLowerCase()))c.color=COLORS[c.id]});
+  if((d.v||0)<3){
+    const MERGE=['logo','mockups'];
+    if(o.categories.some(c=>MERGE.includes(c.id))){
+      if(!o.categories.some(c=>c.id==='inspi'))o.categories.unshift(clone(b.categories[0]));
+      o.categories=o.categories.filter(c=>!MERGE.includes(c.id));
+      const inspi=o.categories.find(c=>c.id==='inspi');if(inspi.name==='Inspiration')inspi.name=b.categories[0].name;
+      o.sites.forEach(s=>{if(Array.isArray(s.cats))s.cats=[...new Set(s.cats.map(c=>MERGE.includes(c)?'inspi':c))]});
+    }
+  }
   return o;
 }
 let S;try{S=normalize(JSON.parse(localStorage.getItem(KEY)))}catch(e){S=clone(DEFAULT)}
