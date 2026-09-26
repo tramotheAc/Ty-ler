@@ -108,6 +108,9 @@ main{padding:8px 0 64px}
 .ghead h2{margin:0;font-size:19px;font-weight:600;letter-spacing:-.015em}
 .ghead span{color:var(--muted);font-size:14px}
 .ghead hr{flex:1;border:0;border-top:1px solid var(--line);margin:0 0 0 6px}
+.sub+.sub{margin-top:18px}
+.sub h3{margin:0 0 10px;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);display:flex;gap:8px}
+.sub h3 span{font-weight:400}
 .icons{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:10px 8px}
 .tile{position:relative;display:flex;flex-direction:column;align-items:center;gap:10px;padding:14px 6px 12px;border:0;background:transparent;border-radius:16px;cursor:pointer;text-align:center;transition:background .25s}
 .tile:hover{background:var(--surface);box-shadow:var(--shadow)}
@@ -299,6 +302,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
         <div class="field"><label for="cf-name">Nom</label><input class="inp" id="cf-name" required maxlength="40" placeholder="Ex. Illustrations"></div>
         <div class="field"><span class="lab">Couleur</span><div class="inline"><div class="picker" id="cf-swatches"></div><input type="color" id="cf-color" value="#4338ca" aria-label="Couleur personnalisée"></div></div>
         <div class="field"><span class="lab">Icône</span><div class="picker" id="cf-icons"></div></div>
+        <div class="field"><label for="cf-subs">Sous-catégories</label><input class="inp" id="cf-subs" placeholder="Ex. Logo & identité, Mockups"><span class="hint">Facultatif, séparées par des virgules.</span></div>
         <div class="inline"><button class="btn pri" type="submit" id="cf-submit">Créer la thématique</button><button class="btn ghost" type="button" id="cf-cancel" hidden>Annuler</button></div>
       </form>
     </div>
@@ -364,7 +368,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
       <div class="field"><label for="sf-url">Adresse</label><input class="inp" id="sf-url" type="url" required placeholder="https://"></div>
       <div class="field"><label for="sf-name">Nom</label><input class="inp" id="sf-name" required maxlength="60"></div>
       <div class="field"><label for="sf-desc">Description</label><textarea class="inp" id="sf-desc" maxlength="400" style="min-height:76px"></textarea></div>
-      <div class="field"><span class="lab">Thématiques</span><div class="checks" id="sf-cats"></div></div>
+      <div class="field"><span class="lab">Thématiques</span><div class="checks" id="sf-cats"></div><div id="sf-subs"></div></div>
       <div class="field"><span class="lab">Logo</span>
         <div class="logo-box"><span class="logo-prev" id="sf-prev"></span>
           <div class="inline"><label class="btn" for="sf-file"><span class="ico" data-icon="image"></span>Importer un logo</label>
@@ -443,16 +447,14 @@ const ICON_NAMES={bulb:'Ampoule',nib:'Plume',palette:'Palette',text:'Typo',shape
 const PICKABLE=Object.keys(ICON_NAMES);
 const svgWrap=i=>'<svg viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+i+'</svg>';
 
-const COLORS={inspi:'#4338ca',logo:'#0e7490',couleur:'#db2777',typo:'#475569',icones:'#7c3aed',"3d":'#2563eb',mockups:'#0d9488',anim:'#ca8a04',skills:'#16a34a'};
-const DEFAULT={v:2,
+const COLORS={inspi:'#4338ca',couleur:'#db2777',typo:'#475569',icones:'#7c3aed',"3d":'#2563eb',anim:'#ca8a04',skills:'#16a34a'};
+const DEFAULT={v:4,
   categories:[
-    {id:'inspi',name:'Inspiration',icon:'bulb',color:COLORS.inspi},
-    {id:'logo',name:'Logo & identité',icon:'nib',color:COLORS.logo},
+    {id:'inspi',name:'Inspiration, logos & mockups',icon:'bulb',color:COLORS.inspi,subs:[{id:'inspi-gen',name:'Inspiration'},{id:'inspi-logo',name:'Logo & identité'},{id:'inspi-mock',name:'Mockups'}]},
     {id:'couleur',name:'Couleurs',icon:'palette',color:COLORS.couleur},
     {id:'typo',name:'Typographie',icon:'text',color:COLORS.typo},
     {id:'icones',name:'Icônes',icon:'shapes',color:COLORS.icones},
     {id:'3d',name:'3D',icon:'cube',color:COLORS['3d']},
-    {id:'mockups',name:'Mockups',icon:'frame',color:COLORS.mockups},
     {id:'anim',name:'Animation & scripts',icon:'bolt',color:COLORS.anim},
     {id:'skills',name:'Skills IA',icon:'cap',color:COLORS.skills}
   ],
@@ -460,15 +462,15 @@ const DEFAULT={v:2,
     {id:'phosphor',name:'Phosphor Icons',url:'https://phosphoricons.com',desc:"Famille d'icônes open source cohérente, déclinée en six graisses, pour interfaces et sites.",cats:['icones'],tags:['svg','open source','ui']},
     {id:'anime',name:'Anime.js',url:'https://animejs.com/',desc:"Librairie JavaScript légère pour animer CSS, SVG et DOM avec des timelines précises.",cats:['anim'],tags:['javascript','svg','timeline']},
     {id:'coolors',name:'Coolors',url:'https://coolors.co/',desc:"Générateur de palettes : génère, verrouille les teintes à garder, exporte.",cats:['couleur'],tags:['palette','générateur']},
-    {id:'mockups',name:'Mockups Design',url:'https://mockups-design.com/',desc:"Mockups gratuits (print, packaging, écrans) pour présenter une identité ou un site en situation.",cats:['mockups'],tags:['psd','présentation','gratuit']},
-    {id:'identity',name:'Identity Designed',url:'https://identitydesigned.com/',desc:"Projets d'identité visuelle complets, présentés studio par studio avec leur démarche.",cats:['inspi','logo'],tags:['branding','études de cas']},
+    {id:'mockups',name:'Mockups Design',url:'https://mockups-design.com/',desc:"Mockups gratuits (print, packaging, écrans) pour présenter une identité ou un site en situation.",cats:['inspi'],subs:['inspi-mock'],tags:['psd','présentation','gratuit']},
+    {id:'identity',name:'Identity Designed',url:'https://identitydesigned.com/',desc:"Projets d'identité visuelle complets, présentés studio par studio avec leur démarche.",cats:['inspi'],subs:['inspi-logo'],tags:['branding','études de cas']},
     {id:'realtime',name:'Realtime Colors',url:'https://www.realtimecolors.com/?colors=050315-fbfbfe-2f27ce-dedcff-433bff&fonts=Inter-Inter',desc:"Teste une palette et un couple de polices sur une vraie maquette de site, puis exporte les variables CSS. Ty-ler reprend cette palette et la police Inter.",cats:['couleur','typo'],tags:['palette','polices','css']},
-    {id:'logobook',name:'Logobook',url:'https://logobook.com/',desc:"Index de logos classés par forme, symbole et designer, pour chercher une piste graphique.",cats:['logo','inspi'],tags:['symboles','archive']},
+    {id:'logobook',name:'Logobook',url:'https://logobook.com/',desc:"Index de logos classés par forme, symbole et designer, pour chercher une piste graphique.",cats:['inspi'],subs:['inspi-logo'],tags:['symboles','archive']},
     {id:'3dsvg',name:'3D SVG',url:'https://3dsvg.design/',desc:"Transforme un tracé SVG en objet 3D pour tes visuels.",cats:['3d','icones'],tags:['svg','3d']},
-    {id:'posts',name:'Posts Design',url:'https://posts.design/',desc:"Collection de visuels et publications de designers à parcourir pour des idées de mise en page.",cats:['inspi'],tags:['réseaux sociaux','layout']},
-    {id:'deck',name:'Deck Gallery',url:'https://www.deck.gallery/',desc:"Galerie de présentations et pitch decks soignés, utile pour construire une narration de page.",cats:['inspi'],tags:['présentation','storytelling']},
-    {id:'logosystem',name:'Logo System',url:'https://logosystem.co/',desc:"Bibliothèque de marques et symboles classés par familles de formes.",cats:['logo','inspi'],tags:['symboles','systèmes']},
-    {id:'recent',name:'Recent Design',url:'https://recent.design/?category=3d',desc:"Sélection de ressources design récentes, ouverte ici sur la catégorie 3D.",cats:['3d','inspi'],tags:['veille','ressources']},
+    {id:'posts',name:'Posts Design',url:'https://posts.design/',desc:"Collection de visuels et publications de designers à parcourir pour des idées de mise en page.",cats:['inspi'],subs:['inspi-gen'],tags:['réseaux sociaux','layout']},
+    {id:'deck',name:'Deck Gallery',url:'https://www.deck.gallery/',desc:"Galerie de présentations et pitch decks soignés, utile pour construire une narration de page.",cats:['inspi'],subs:['inspi-gen'],tags:['présentation','storytelling']},
+    {id:'logosystem',name:'Logo System',url:'https://logosystem.co/',desc:"Bibliothèque de marques et symboles classés par familles de formes.",cats:['inspi'],subs:['inspi-logo'],tags:['symboles','systèmes']},
+    {id:'recent',name:'Recent Design',url:'https://recent.design/?category=3d',desc:"Sélection de ressources design récentes, ouverte ici sur la catégorie 3D.",cats:['3d','inspi'],subs:['inspi-gen'],tags:['veille','ressources']},
     {id:'tasteskill',name:'Taste Skill',url:'https://www.tasteskill.dev/',desc:"Skills à charger dans un agent IA pour améliorer ses choix de design front-end.",cats:['skills'],tags:['ia','agent','design']},
     {id:'uupm',name:'UI UX Pro Max',url:'https://uupm.cc/',desc:"Skill de design pour agents IA : styles, palettes, typos et règles UX à appliquer pendant le développement.",cats:['skills'],tags:['ia','ux','agent']}
   ],
@@ -480,10 +482,24 @@ const clone=o=>JSON.parse(JSON.stringify(o));
 function normalize(d){
   const b=clone(DEFAULT);
   if(!d||typeof d!=='object')return b;
-  const o={v:2,categories:Array.isArray(d.categories)?d.categories:b.categories,sites:Array.isArray(d.sites)?d.sites:b.sites,
+  const o={v:4,categories:Array.isArray(d.categories)?d.categories:b.categories,sites:Array.isArray(d.sites)?d.sites:b.sites,
     favs:Array.isArray(d.favs)?d.favs:[],notes:(d.notes&&typeof d.notes==='object')?d.notes:{},customIcons:Array.isArray(d.customIcons)?d.customIcons:[],
     settings:Object.assign({favicons:true},(d.settings&&typeof d.settings==='object')?d.settings:{})};
-  if(d.v!==2) o.categories.forEach(c=>{if(COLORS[c.id]&&OLD.includes((c.color||'').toLowerCase()))c.color=COLORS[c.id]});
+  if((d.v||0)<2) o.categories.forEach(c=>{if(COLORS[c.id]&&OLD.includes((c.color||'').toLowerCase()))c.color=COLORS[c.id]});
+  if((d.v||0)<4){
+    const MAP={logo:'inspi-logo',mockups:'inspi-mock'},base=b.categories[0];
+    let inspi=o.categories.find(c=>c.id==='inspi');
+    const merging=o.categories.some(c=>MAP[c.id]);
+    if(merging&&!inspi){inspi=clone(base);o.categories.unshift(inspi)}
+    if(inspi&&!Array.isArray(inspi.subs)){
+      inspi.subs=clone(base.subs);if(inspi.name==='Inspiration')inspi.name=base.name;
+      o.sites.forEach(s=>{if(!Array.isArray(s.cats))return;
+        const hit=s.cats.find(c=>MAP[c]);
+        if(hit||s.cats.includes('inspi'))s.subs=[hit?MAP[hit]:'inspi-gen'];
+        s.cats=[...new Set(s.cats.map(c=>MAP[c]?'inspi':c))]});
+    }
+    o.categories=o.categories.filter(c=>!MAP[c.id]);
+  }
   return o;
 }
 let S;try{S=normalize(JSON.parse(localStorage.getItem(KEY)))}catch(e){S=clone(DEFAULT)}
@@ -564,17 +580,23 @@ function tileHTML(s,c){
       <button class="mini star${fav?' on':''}" data-star="${esc(s.id)}" aria-pressed="${fav}" aria-label="${fav?'Retirer des favoris':'Épingler en favori'} : ${esc(s.name)}">${iconHTML('star')}</button>
     </span></div>`;
 }
-function groupHTML(id,name,icon,color,list){
+function groupHTML(id,name,icon,color,list,subs){
+  let body=`<div class="icons">${list.map(s=>tileHTML(s,id==='fav'?colorOf(s):color)).join('')}</div>`;
+  if(subs&&subs.length){
+    const subOf=s=>subs.find(u=>(s.subs||[]).includes(u.id));
+    const parts=subs.map(u=>[u.name,list.filter(s=>subOf(s)===u)]).concat([['Autres',list.filter(s=>!subOf(s))]]).filter(x=>x[1].length);
+    body=parts.map(([n,l])=>`<div class="sub"><h3>${esc(n)}<span>${l.length}</span></h3><div class="icons">${l.map(s=>tileHTML(s,color)).join('')}</div></div>`).join('');
+  }
   return `<section class="group" id="g-${esc(id)}" data-g="${esc(id)}" data-color="${esc(color)}" data-name="${esc(name)}">
     <div class="ghead" style="--c:${esc(color)}"><span class="gi">${icon}</span><h2>${esc(name)}</h2><span>${list.length}</span><hr></div>
-    <div class="icons">${list.map(s=>tileHTML(s,s===null?color:(id==='fav'?colorOf(s):color))).join('')}</div></section>`;
+    ${body}</section>`;
 }
 function renderCatalog(animate){
   const sites=S.sites.filter(matches);
   let html='';
   const favs=sites.filter(s=>S.favs.includes(s.id));
   if(favs.length)html+=groupHTML('fav','Favoris',iconHTML('star'),'#e0a100',favs);
-  S.categories.forEach(c=>{const l=sites.filter(s=>(s.cats||[]).includes(c.id));if(l.length)html+=groupHTML(c.id,c.name,iconHTML(c.icon),c.color,l)});
+  S.categories.forEach(c=>{const l=sites.filter(s=>(s.cats||[]).includes(c.id));if(l.length)html+=groupHTML(c.id,c.name,iconHTML(c.icon),c.color,l,c.subs)});
   const orphan=sites.filter(s=>!(s.cats||[]).some(id=>catById(id)));
   if(orphan.length)html+=groupHTML('none','Sans thématique',iconHTML('folder'),'#6b6980',orphan);
   if(!sites.length)html=q?`<div class="empty"><strong>Rien pour « ${esc(q)} »</strong>Essaie un autre mot, ou ajoute le site qui manque.</div>`:'<div class="empty"><strong>Le catalogue est vide</strong>Ajoute ton premier site pour commencer.</div>';
@@ -656,7 +678,11 @@ function toggleFav(id,btn){
 }
 
 /* ---------- formulaire site ---------- */
-let sfIcon='',sfLogo='';
+let sfIcon='',sfLogo='',sfSubs=new Set();
+function renderSfSubs(){
+  const cats=S.categories.filter(c=>c.subs&&c.subs.length&&$(`#sf-cats [data-sfc="${CSS.escape(c.id)}"][aria-pressed="true"]`));
+  $('#sf-subs').innerHTML=cats.map(c=>`<span class="hint">${esc(c.name)} : sous-catégorie</span><div class="checks">${c.subs.map(u=>`<button type="button" class="chip" data-sfs="${esc(u.id)}" data-sfsc="${esc(c.id)}" aria-pressed="${sfSubs.has(u.id)}">${esc(u.name)}</button>`).join('')}</div>`).join('');
+}
 function renderSfPrev(){
   const tmp={name:$('#sf-name').value||'?',url:$('#sf-url').value,icon:sfIcon,logo:sfLogo,logoFill:$('#sf-fill').checked};
   const p=$('#sf-prev');const c=S.categories.find(c=>$(`#sf-cats [data-sfc="${CSS.escape(c.id)}"][aria-pressed="true"]`));
@@ -682,6 +708,7 @@ function openSiteForm(id){
   sfIcon=s&&s.icon?s.icon:'';sfLogo=s&&okLogo(s.logo)?s.logo:'';$('#sf-fill').checked=!!(s&&s.logoFill);$('#sf-file').value='';
   const sel=new Set(s?s.cats:[]);
   $('#sf-cats').innerHTML=S.categories.map(c=>`<button type="button" class="chip" data-sfc="${esc(c.id)}" aria-pressed="${sel.has(c.id)}">${iconHTML(c.icon)}${esc(c.name)}</button>`).join('')||'<span class="hint">Crée d\'abord une thématique dans l\'admin.</span>';
+  sfSubs=new Set(s&&s.subs||[]);renderSfSubs();
   renderSfIcons();renderSfPrev();
   $('#ds-title').textContent=s?'Modifier le site':'Ajouter un site';$('#sf-submit').textContent=s?'Enregistrer':'Ajouter le site';$('#sf-del').hidden=!s;
   openDialog($('#dlg-site'),null);
@@ -707,7 +734,7 @@ function renderAdmin(){
     <div class="grow"><div class="t">${esc(s.name)}</div><div class="s">${esc(domainOf(s.url))}${(s.cats||[]).length?', '+(s.cats||[]).map(id=>catById(id)?.name).filter(Boolean).map(esc).join(', '):''}</div></div>
     <button class="iconbtn" data-sedit="${esc(s.id)}" aria-label="Modifier ${esc(s.name)}">${iconHTML('pencil')}</button><button class="iconbtn" data-sdel="${esc(s.id)}" aria-label="Supprimer ${esc(s.name)}">${iconHTML('trash')}</button></div>`).join('')||'<div class="item"><span class="s">Aucun site.</span></div>';
 }
-function resetCatForm(){cfEditing=null;$('#cf-name').value='';$('#cf-color').value='#4338ca';cfIcon='bulb';$('#cat-form-title').textContent='Nouvelle thématique';$('#cf-submit').textContent='Créer la thématique';$('#cf-cancel').hidden=true;renderAdmin()}
+function resetCatForm(){cfEditing=null;$('#cf-name').value='';$('#cf-subs').value='';$('#cf-color').value='#4338ca';cfIcon='bulb';$('#cat-form-title').textContent='Nouvelle thématique';$('#cf-submit').textContent='Créer la thématique';$('#cf-cancel').hidden=true;renderAdmin()}
 
 function renderAll(animate){renderCatalog(animate);renderAdmin();if(openId&&$('#dlg-detail').open)fillDetail(openId,false)}
 function route(){const admin=location.hash==='#admin';document.body.classList.toggle('route-admin',admin);
@@ -727,12 +754,13 @@ document.addEventListener('click',e=>{
   const pick=t.closest('[data-pick]');if(pick){cfIcon=pick.dataset.pick;$$('#cf-icons [data-pick]').forEach(b=>b.setAttribute('aria-pressed',b===pick));return}
   const sfi=t.closest('[data-sfi]');if(sfi){sfIcon=sfi.dataset.sfi;$$('#sf-icons [data-sfi]').forEach(b=>b.setAttribute('aria-pressed',b===sfi));renderSfPrev();return}
   const sw=t.closest('[data-sw]');if(sw){$('#cf-color').value=sw.dataset.sw;return}
-  const ce=t.closest('[data-cedit]');if(ce){const c=catById(ce.dataset.cedit);cfEditing=c.id;$('#cf-name').value=c.name;$('#cf-color').value=c.color;cfIcon=c.icon;$('#cat-form-title').textContent='Modifier « '+c.name+' »';$('#cf-submit').textContent='Enregistrer';$('#cf-cancel').hidden=false;renderAdmin();$('#cf-name').focus();return}
+  const ce=t.closest('[data-cedit]');if(ce){const c=catById(ce.dataset.cedit);cfEditing=c.id;$('#cf-name').value=c.name;$('#cf-subs').value=(c.subs||[]).map(u=>u.name).join(', ');$('#cf-color').value=c.color;cfIcon=c.icon;$('#cat-form-title').textContent='Modifier « '+c.name+' »';$('#cf-submit').textContent='Enregistrer';$('#cf-cancel').hidden=false;renderAdmin();$('#cf-name').focus();return}
   const cd=t.closest('[data-cdel]');if(cd){const c=catById(cd.dataset.cdel);const n=S.sites.filter(s=>(s.cats||[]).includes(c.id)).length;if(!confirm(`Supprimer la thématique « ${c.name} » ? ${n} site(s) la perdront, les sites restent.`))return;S.categories=S.categories.filter(x=>x.id!==c.id);S.sites.forEach(s=>s.cats=(s.cats||[]).filter(x=>x!==c.id));persist();renderAll(false);toast('Thématique supprimée');return}
   const idel=t.closest('[data-idel]');if(idel){const id=idel.dataset.idel;const used=S.categories.filter(c=>c.icon===id).length+S.sites.filter(s=>s.icon===id).length;if(!confirm(used?`Cette icône est utilisée ${used} fois, elle sera remplacée. Supprimer ?`:'Supprimer cette icône ?'))return;S.customIcons=S.customIcons.filter(i=>i.id!==id);S.categories.forEach(c=>{if(c.icon===id)c.icon='folder'});S.sites.forEach(s=>{if(s.icon===id)delete s.icon});if(cfIcon===id)cfIcon='bulb';persist();renderAll(false);toast('Icône supprimée');return}
   const se=t.closest('[data-sedit]');if(se){openSiteForm(se.dataset.sedit);return}
   const sd=t.closest('[data-sdel]');if(sd){deleteSite(sd.dataset.sdel);return}
-  const sfc=t.closest('[data-sfc]');if(sfc){sfc.setAttribute('aria-pressed',sfc.getAttribute('aria-pressed')!=='true');renderSfPrev();return}
+  const sfc=t.closest('[data-sfc]');if(sfc){sfc.setAttribute('aria-pressed',sfc.getAttribute('aria-pressed')!=='true');sfSubs=new Set($$('#sf-subs [data-sfs][aria-pressed="true"]').map(b=>b.dataset.sfs));renderSfSubs();renderSfPrev();return}
+  const sfs=t.closest('[data-sfs]');if(sfs){const on=sfs.getAttribute('aria-pressed')!=='true';$$(`#sf-subs [data-sfsc="${CSS.escape(sfs.dataset.sfsc)}"]`).forEach(b=>b.setAttribute('aria-pressed',on&&b===sfs));return}
 });
 let qT;$('#q').addEventListener('input',e=>{clearTimeout(qT);qT=setTimeout(()=>{q=e.target.value.trim().toLowerCase();if(location.hash==='#admin')location.hash='';renderCatalog(false)},120)});
 addEventListener('keydown',e=>{if(e.key==='/'&&!/input|textarea/i.test(document.activeElement.tagName)&&!document.querySelector('dialog[open]')){e.preventDefault();$('#q').focus()}});
@@ -749,10 +777,12 @@ $('#site-form').addEventListener('submit',e=>{
   e.preventDefault();
   const id=$('#sf-id').value,data={name:$('#sf-name').value.trim(),url:$('#sf-url').value.trim(),desc:$('#sf-desc').value.trim(),
     cats:$$('#sf-cats [data-sfc][aria-pressed="true"]').map(b=>b.dataset.sfc),
+    subs:$$('#sf-subs [data-sfs][aria-pressed="true"]').map(b=>b.dataset.sfs),
     tags:[...new Set($('#sf-tags').value.split(',').map(t=>t.trim().toLowerCase()).filter(Boolean))]};
+  if(!data.subs.length)delete data.subs;
   if(sfIcon)data.icon=sfIcon;
   if(sfLogo){data.logo=sfLogo;data.logoFill=$('#sf-fill').checked}
-  if(id){const s=S.sites.find(x=>x.id===id);Object.assign(s,data);if(!sfIcon)delete s.icon;if(!sfLogo){delete s.logo;delete s.logoFill}toast('Site enregistré')}
+  if(id){const s=S.sites.find(x=>x.id===id);Object.assign(s,data);if(!data.subs)delete s.subs;if(!sfIcon)delete s.icon;if(!sfLogo){delete s.logo;delete s.logoFill}toast('Site enregistré')}
   else{S.sites.unshift({id:uid('s'),...data});toast('Site ajouté')}
   persist();closeDialog($('#dlg-site'));renderAll(false);
   if(JSON.stringify(S).length>230000)toast('Beaucoup de logos : la synchro en ligne approche de sa limite. Le fichier local n\'est pas concerné.');
@@ -766,7 +796,9 @@ $('#sf-name').addEventListener('input',renderSfPrev);
 $('#opt-fav').addEventListener('change',e=>{S.settings.favicons=e.target.checked;persist();renderAll(false);toast(e.target.checked?'Favicons activés':'Favicons désactivés')});
 $('#sf-del').addEventListener('click',()=>{if(deleteSite($('#sf-id').value))closeDialog($('#dlg-site'))});
 $('#cat-form').addEventListener('submit',e=>{e.preventDefault();const name=$('#cf-name').value.trim(),color=$('#cf-color').value;if(!name)return;
-  if(cfEditing){Object.assign(catById(cfEditing),{name,color,icon:cfIcon});toast('Thématique enregistrée')}else{S.categories.push({id:uid('c'),name,color,icon:cfIcon});toast('Thématique créée')}
+  const prev=cfEditing?(catById(cfEditing).subs||[]):[];
+  const subs=[...new Set($('#cf-subs').value.split(',').map(x=>x.trim()).filter(Boolean))].map(n=>prev.find(u=>u.name===n)||{id:uid('u'),name:n});
+  if(cfEditing){const c=catById(cfEditing);Object.assign(c,{name,color,icon:cfIcon});if(subs.length)c.subs=subs;else delete c.subs;toast('Thématique enregistrée')}else{S.categories.push({id:uid('c'),name,color,icon:cfIcon,...(subs.length?{subs}:{})});toast('Thématique créée')}
   persist();resetCatForm();renderAll(false)});
 $('#cf-cancel').addEventListener('click',resetCatForm);
 $('#if-svg').addEventListener('input',e=>{const s=sanitizeSvg(e.target.value);$('#if-prev').innerHTML=s?'<span class="ico">'+s+'</span>':(e.target.value.trim()?'<span class="hint">SVG illisible</span>':'')});
